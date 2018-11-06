@@ -65,6 +65,7 @@ def get_valid_lists_pages_and_subcategories(sess, url):
             for item in items:
                 spans = group.xpath('div/div/span')
                 for span in spans:
+                    # if this link has no further links skip it (i.e.  it's invalid)
                     skip_group |= 'empty' in span.text_content()
                 if skip_group:
                     continue
@@ -118,9 +119,19 @@ def process_page(sess, url, word_tokenizer, lemmatizer=None, sentence_tokenizer=
 
     return tokenized
 
-def process_book(sess, url):
+def process_book(sess, url, word_tokenizer, lemmatizer=None, sentence_tokenizer=None):
+    base_url = 'https://en.wikipedia.org'
+
     page = sess.get(url)
     tree = html.fromstring(page.content)
+
+    page_links = tree.xpath('//div[@id="mw-content-text"]//dd/a/@href')
+
+    tokenized = {}
+    for page_link in page_links:
+        tokenized[base_url + page_link] = process_page(sess, base_url + page_link, word_tokenizer, lemmatizer, sentence_tokenizer)
+
+    return tokenized
 
 
 def get_wiki_page_data(sess, title):
