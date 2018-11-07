@@ -3,6 +3,7 @@ Creates graph of related Wikipedia pages using a very simple [tf-idf](https://en
 
 * [Installation](#installation)
 * [Usage](#usage)
+* [Output](#output)
 
 <a name="installation"/>
 
@@ -57,3 +58,12 @@ The similarity settings file has the following options:
 ```bash
 python compute_tf-idf.py --download_settings <settings file> --parse_settings <settings file> --similarity_settings <settings file>
 ```
+
+<a name="output"/>
+
+## Outputs
+* the downloaded raw pages are stored in `data/wiki/<topic>/*.html` by default
+* the vocabulary JSON files are stored in `artifacts/wiki/<topic>/vocab/*.json` by default
+* the vocabulary PDF plot files are stored in `artifacts/wiki/<topic>/vocab/*.pdf` by default
+* the similarity results are stored in `artifacts/wiki/<topic>/graph/*.json` by default
+* the similarity graph is stored in `artifacts/wiki/<topic>/graph/*.pdf` by default
