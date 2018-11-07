@@ -1,5 +1,5 @@
 import os
-os.environ["PATH"] += os.pathsep + "C:/ProgramData/Miniconda3/envs/document_recommender/Library/bin/graphviz"
+# os.environ["PATH"] += os.pathsep + "C:/ProgramData/Miniconda3/envs/document_recommender/Library/bin/graphviz"
 import argparse
 import json
 

@@ -86,7 +86,7 @@ def main(download_settings_filename, parse_settings_filename, similarity_setting
 
     os.makedirs(save_dir, exist_ok=True)
     with open(os.path.join(save_dir, 'raw_graph_info.json'), 'w') as f:
-        json.dump(analysis_results, f)
+        json.dump(analysis_results, f, indent=4)
 
 
 if __name__ == '__main__':

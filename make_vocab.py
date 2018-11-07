@@ -173,12 +173,12 @@ def main(download_settings_filename, parse_settings_filename):
         total_vocab.update(l)
         save_filename = os.path.join(save_dir, os.path.basename(page[:page.rfind('.')]) + '.json')
         with open(save_filename, 'w') as f:
-            json.dump(dict(document_vocabs[page]), f)
+            json.dump(dict(document_vocabs[page]), f, indent=4)
         if make_plots:
             save_filename = save_filename[:save_filename.rfind('.')] + '.pdf'
             save_freq_plot(save_filename, document_vocabs[page], max_num=plot_top_k, cumulative=plot_cumulative, title=plot_title)
     with open(os.path.join(save_dir, 'total_count.json'), 'w') as f:
-        json.dump(dict(total_vocab), f)
+        json.dump(dict(total_vocab), f, indent=4)
     if make_plots:
         save_filename = os.path.join(save_dir, 'total_count.pdf')
         save_freq_plot(save_filename, total_vocab, max_num=plot_top_k, cumulative=plot_cumulative, title=plot_title)
