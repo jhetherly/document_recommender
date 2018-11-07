@@ -1,8 +1,8 @@
 # document_recommender
 Creates graph of related Wikipedia pages using a very simple [tf-idf](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) similarity criterion.
 
-[Installation](#installation)
-[Usage](#usage)
+* [Installation](#installation)
+* [Usage](#usage)
 
 <a name="installation"/>
 

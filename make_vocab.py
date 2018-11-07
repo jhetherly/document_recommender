@@ -25,6 +25,41 @@ from nltk import FreqDist
 stop_words = set(stopwords.words('english'))
 
 
+def plot_freqdist_freq(fd,
+                       max_num=None,
+                       cumulative=False,
+                       title='Frequency plot',
+                       linewidth=2):
+    """
+    From https://martinapugliese.github.io/plotting-the-actual-frequencies-in-a-FreqDist-in-nltk/
+    Work this around here.
+    
+    INPUT:
+        - the FreqDist object
+        - max_num: if specified, only plot up to this number of items 
+          (they are already sorted descending by the FreqDist)
+        - cumulative: bool (defaults to False)
+        - title: the title to give the plot
+        - linewidth: the width of line to use (defaults to 2)
+    OUTPUT: plot the freq and return None.
+    """
+
+    tmp = fd.copy()
+    norm = fd.N()
+    for key in tmp.keys():
+        tmp[key] = float(fd[key]) / norm
+
+    if max_num:
+        tmp.plot(max_num, cumulative=cumulative,
+                 title=title, linewidth=linewidth)
+    else:
+        tmp.plot(cumulative=cumulative, 
+                 title=title, 
+                 linewidth=linewidth)
+
+    return
+
+
 def remove_html_tags_and_brackets(html_text):
     clean_tag = re.compile('<.*?>')
     cleantext = re.sub(clean_tag, ' ', html_text)
