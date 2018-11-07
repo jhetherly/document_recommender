@@ -29,6 +29,7 @@ def main(download_settings_filename, parse_settings_filename, similarity_setting
         similarity_config = json.load(f)
     topic = download_config.get('topic', 'Medicine')
     data_dir = os.path.join(download_config.get('save_dir', os.path.join('data', 'wiki')), topic)
+    n_pages = download_config.get('min_pages', 500)
     vocab_dir = os.path.join(parse_config.get('save_dir', os.path.join('artifacts', 'wiki')), topic, 'vocab')
     save_dir = os.path.join(similarity_config.get('save_dir', os.path.join('artifacts', 'wiki')), topic, 'graph')
     vocab_top_k = similarity_config.get('vocab_top_k', 100)
@@ -66,12 +67,12 @@ def main(download_settings_filename, parse_settings_filename, similarity_setting
     shortest_indices = np.argsort(similarity_matrix, axis=-1)[:, 1:graph_top_k + 1]
 
     print('finding top-{} closest pages'.format(graph_top_k))
-    pbar = tqdm(total=graph_top_k*shortest_indices.shape[0])
+    pbar = tqdm(total=graph_top_k*min(shortest_indices.shape[0], n_pages))
     analysis_results = {}
     for i in range(graph_top_k):
         ith_shortest = similarity_matrix[np.arange(shortest_indices.shape[0]), shortest_indices[:, i]]
         ith_shortest_indices = shortest_indices[:, i]
-        for doc_index in range(shortest_indices.shape[0]):
+        for doc_index in range(min(shortest_indices.shape[0], n_pages)):
             doc_name = os.path.basename(json_files[doc_index])
             doc_name = urllib.parse.unquote(doc_name[:doc_name.rfind('.')])
             if doc_name not in analysis_results:
