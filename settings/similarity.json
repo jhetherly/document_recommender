@@ -1,4 +1,5 @@
 {
-    "k": 10,
+    "vocab_top_k": 500,
+    "graph_top_k": 10,
     "metric": "euclidean"
 }

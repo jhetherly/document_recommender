@@ -1,3 +1,6 @@
 {
-    "sentence_tokenizer": ""
+    "plot_top_k": 25,
+    "plot_cumulative": true,
+    "exclude_vocab": ["first", "second", "one", "two", "once", "twice", "also", "would", "used"],
+    "min_page_vocab": 5
 }

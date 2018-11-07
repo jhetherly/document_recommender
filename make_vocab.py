@@ -9,6 +9,9 @@ from tqdm import tqdm
 from unidecode import unidecode
 import requests
 from lxml import html
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import nltk
 from nltk.corpus import stopwords
 # from nltk.tokenize import sent_tokenize, word_tokenize
@@ -57,7 +60,15 @@ def plot_freqdist_freq(fd,
                  title=title, 
                  linewidth=linewidth)
 
-    return
+
+def save_freq_plot(save_filename, freq, **kw_args):
+    plot_freqdist_freq(freq, **kw_args)
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    if os.path.isfile(save_filename):
+        os.remove(save_filename)
+    plt.savefig(save_filename)
+    plt.close()
 
 
 def remove_html_tags_and_brackets(html_text):
@@ -73,7 +84,7 @@ def remove_html_tags_and_brackets(html_text):
     return cleantext
 
 
-def process_page(sess, filename, word_tokenizer, lemmatizer=None, sentence_tokenizer=None):
+def process_page(sess, filename, exclude_list, word_tokenizer, lemmatizer=None, sentence_tokenizer=None):
     with open(filename) as f:
         tree = html.fromstring(f.read())
 
@@ -108,8 +119,9 @@ def process_page(sess, filename, word_tokenizer, lemmatizer=None, sentence_token
 
         # transliterate to ascii with unidecode and remove non-alpha characters on words
         tokenized_words = [non_lower_alpha.sub('', unidecode(x).lower()) for x in tokenized_words]
-        # remove stop words
-        tokenized_words = [x for x in tokenized_words if x not in stop_words and len(x) > 2]
+        # remove stop words, etc.
+        tokenized_words = [x for x in tokenized_words
+                           if x not in stop_words and x not in exclude_list and len(x) > 2]
         return tokenized_words
 
     tokenized = []
@@ -129,7 +141,14 @@ def main(download_settings_filename, parse_settings_filename):
     with open(parse_settings_filename, 'r') as f:
         parse_config = json.load(f)
     topic = download_config.get('topic', 'Medicine')
-    save_dir = os.path.join(download_config.get('save_dir', os.path.join('data', 'wiki')), topic)
+    data_dir = os.path.join(download_config.get('save_dir', os.path.join('data', 'wiki')), topic)
+    save_dir = os.path.join(parse_config.get('save_dir', os.path.join('artifacts', 'wiki')), topic, 'vocab')
+    exclude_vocab = parse_config.get('exclude_vocab', [])
+    min_page_vocab = parse_config.get('min_page_vocab', 5)
+    plot_top_k = parse_config.get('plot_top_k', 40)
+    plot_cumulative = parse_config.get('plot_cumulative', True)
+    plot_title = 'top {} frequency'.format(plot_top_k) if not plot_cumulative else 'top {} cumulative'.format(plot_top_k)
+    make_plots = plot_top_k > 0
 
     wiki_url = 'https://en.wikipedia.org/wiki/Category:{}'.format(topic)
 
@@ -139,21 +158,31 @@ def main(download_settings_filename, parse_settings_filename):
 
     S = requests.Session()
 
-    pages = glob(os.path.join(save_dir, '*.html'))
+    pages = glob(os.path.join(data_dir, '*.html'))
 
     total_vocab = FreqDist()
     document_vocabs = {}
     print('reading {} files and generating vocabulary'.format(len(pages)))
+    os.makedirs(save_dir, exist_ok=True)
     for page in tqdm(pages):
-        l = process_page(S, page, word_tokenizer, lem, sent_tokenizer)
+        l = process_page(S, page, exclude_vocab, word_tokenizer, lem, sent_tokenizer)
+        # ignore pages with very small vocabulary
+        if len(l) < min_page_vocab:
+            continue
         document_vocabs[page] = FreqDist(l)
         total_vocab.update(l)
-        save_filename = page[:page.rfind('.')] + '.json'
+        save_filename = os.path.join(save_dir, os.path.basename(page[:page.rfind('.')]) + '.json')
         with open(save_filename, 'w') as f:
             json.dump(dict(document_vocabs[page]), f)
-    with open(os.path.join(save_dir, 'tf-idf_total.json'), 'w') as f:
+        if make_plots:
+            save_filename = save_filename[:save_filename.rfind('.')] + '.pdf'
+            save_freq_plot(save_filename, document_vocabs[page], max_num=plot_top_k, cumulative=plot_cumulative, title=plot_title)
+    with open(os.path.join(save_dir, 'total_count.json'), 'w') as f:
         json.dump(dict(total_vocab), f)
-
+    if make_plots:
+        save_filename = os.path.join(save_dir, 'total_count.pdf')
+        save_freq_plot(save_filename, total_vocab, max_num=plot_top_k, cumulative=plot_cumulative, title=plot_title)
+    # print(total_vocab.most_common(100))
 
 
 if __name__ == '__main__':
