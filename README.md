@@ -58,6 +58,9 @@ The similarity settings file has the following options:
 ```bash
 python compute_tf-idf.py --download_settings <settings file> --parse_settings <settings file> --similarity_settings <settings file>
 ```
+To visualize the results a [D3.js](https://d3js.org)-based HTML template is provided (`similarity_graph_template.html`).
+Just point the `data_loc` variable to the location of the JSON file produced by the above command.
+This may require either hosting this file on a website or starting a local server such Python's [SimpleHTTPServer](https://docs.python.org/2/library/simplehttpserver.html)/[`http.server`](https://docs.python.org/3.7/library/http.html?highlight=http#module-http) tools.
 
 <a name="output"/>
 
