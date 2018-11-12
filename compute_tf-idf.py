@@ -62,7 +62,8 @@ def main(download_settings_filename, parse_settings_filename, similarity_setting
                 all_vocabs.append(vec)
                 good_json_indices.append(i)
         if len(good_json_indices) >= n_pages:
-            continue
+            print('found at least {} suitable pages - breaking out of loop'.format(n_pages))
+            break
     good_json_indices = np.array(good_json_indices)
 
     transformer = TfidfTransformer()
