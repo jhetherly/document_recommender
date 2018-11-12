@@ -48,14 +48,22 @@ def main(download_settings_filename, parse_settings_filename, similarity_setting
     percentage_used = 100*sum([x[1] for x in most_freq_words])/total_number_words
     total_vocab_list = [x[0] for x in most_freq_words]
     all_vocabs = []
+    good_json_indices = []
     print('reading in preprocessed vocabulary using {:.2f}% of the total count of words'.format(percentage_used))
+    i = -1
     for json_file in tqdm(json_files):
+        i += 1
         if json_file == total_vocab_filename:
             continue
         with open(json_file, 'r') as f:
             doc_vocab = json.load(f)
             vec = create_count_vector(doc_vocab, total_vocab_list)
-            all_vocabs.append(vec)
+            if sum(vec) > 0:
+                all_vocabs.append(vec)
+                good_json_indices.append(i)
+        if len(good_json_indices) >= n_pages:
+            continue
+    good_json_indices = np.array(good_json_indices)
 
     transformer = TfidfTransformer()
     tfidf = transformer.fit_transform(all_vocabs)
@@ -73,11 +81,11 @@ def main(download_settings_filename, parse_settings_filename, similarity_setting
         ith_shortest = similarity_matrix[np.arange(shortest_indices.shape[0]), shortest_indices[:, i]]
         ith_shortest_indices = shortest_indices[:, i]
         for doc_index in range(min(shortest_indices.shape[0], n_pages)):
-            doc_name = os.path.basename(json_files[doc_index])
+            doc_name = os.path.basename(json_files[good_json_indices[doc_index]])
             doc_name = urllib.parse.unquote(doc_name[:doc_name.rfind('.')])
             if doc_name not in analysis_results:
                 analysis_results[doc_name] = {"names": [], "similarities": []}
-            ith_shortest_doc_name = os.path.basename(json_files[ith_shortest_indices[doc_index]])
+            ith_shortest_doc_name = os.path.basename(json_files[good_json_indices[ith_shortest_indices[doc_index]]])
             ith_shortest_doc_name = urllib.parse.unquote(ith_shortest_doc_name[:ith_shortest_doc_name.rfind('.')])
             analysis_results[doc_name]["names"].append(ith_shortest_doc_name)
             analysis_results[doc_name]["similarities"].append(ith_shortest[doc_index])
